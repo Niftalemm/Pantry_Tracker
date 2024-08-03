@@ -49,7 +49,7 @@ export default function Home() {
   const [total, setTotal] = useState(0);
   const [newQuantity, setNewQuantity] = useState({ quantity: "" });
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredItems, setFilteredItems] = useState(items);
+  
 
   // Function to add a new item to the database
 const addItemToDatabase = async (newItem) => {
@@ -178,7 +178,35 @@ const addItemToDatabase = async (newItem) => {
     }
   };
 
+  const fetchItemsFromDatabase = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "items"));
+      const itemsList = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setItems(itemsList);
+    } catch (error) {
+      console.error("Error fetching items: ", error);
+    }
+  };
+  useEffect(() => {
+    fetchItemsFromDatabase();
+  }, []);
 
+  const filteredItems = items.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+
+    // Filter items based on search input
+    const filtered = items.filter(item =>
+      item.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilteredItems(filtered);
+  };
   // Search the item from the list
   
 
@@ -210,9 +238,10 @@ const addItemToDatabase = async (newItem) => {
               className = "btn btn-outline-light"
               type="submit"
             >
-              +
+              Add
             </button>
           </form>
+          
           <input
             type="text"
             value={searchQuery}
@@ -223,12 +252,22 @@ const addItemToDatabase = async (newItem) => {
           />
           <button
             className="btn btn-outline-light"
-            type="Submit">
+            >
             <FaSearch/>
 
             
 
           </button>
+          
+          <div className="mt-4">
+            {filteredItems.map((item) => (
+              <div key={item.id} className="p-2 border-b">
+                <p>{item.name}: {item.quantity}</p>
+              </div>
+            ))}
+          </div>
+          
+        
           <ul>
             {items.map((item, id) => (
               <li key={id} className="p-4 bg-gray-600 my-2 rounded-lg">
