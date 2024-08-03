@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 139, 69, 19; /* Change to brown */
+  --background-start-rgb: 255, 255, 0;
+  --background-end-rgb: 255, 255, 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    
+    --foreground-rgb: 255,255,255; /* Change to red font color */
+    --background-start-rgb: 0, 128, 0; /* Change to green bg colors this and the one below*/
+    --background-end-rgb: 0, 128, 0; /* Change to green */
+  }
+}
+
+body {
+background:grey;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+    
+  }
+}
