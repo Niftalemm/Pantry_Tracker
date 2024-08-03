@@ -4,7 +4,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {
   collection,
   addDoc,
-  getDoc,
+  getDocs,
   querySnapshot,
   query,
   onSnapshot,
@@ -13,7 +13,7 @@ import {
   doc,
   getFirestore
 } from "firebase/firestore";
-import { db } from "./firebase.js";
+import { db } from "./firebase";
 import { FaTrash } from "react-icons/fa";
 import { FaEdit } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
@@ -51,18 +51,85 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredItems, setFilteredItems] = useState(items);
 
+  // Function to add a new item to the database
+const addItemToDatabase = async (newItem) => {
+  try {
+    await addDoc(collection(db, "items"), {
+      name: newItem.name.trim(),
+      quantity: newItem.quantity,
+    });
+  } catch (error) {
+    console.error("Error adding document: ", error);
+  }
+};
+
+
+  // Function to update an existing item in the database
+  const updateItemInDatabase = async (item) => {
+    try {
+      const q = query(collection(db, "items"), where("name", "==", item.name));
+      const querySnapshot = await getDocs(q);
+      querySnapshot.forEach(async (docSnapshot) => {
+        const itemRef = doc(db, "items", docSnapshot.id);
+        await updateDoc(itemRef, {
+          quantity: item.quantity,
+        });
+      });
+    } catch (error) {
+      console.error("Error updating document: ", error);
+    }
+  };
+
   // Add item to the list
   const addItem = async (e) => {
     e.preventDefault();
     if (newItem.name !== "" && newItem.quantity !== "") {
-      //setItems([...items, newItem]);
-      await addDoc(collection(db, "items"), {
-        name: newItem.name.trim(),
-        quantity: newItem.quantity,
-      });
+      const itemExists = items.find(item => item.name === newItem.name);
+      if (itemExists) {
+        itemExists.quantity = newItem.quantity;
+        await updateItemInDatabase(itemExists);
+      } else {
+        await addItemToDatabase(newItem);
+      }
       setNewItem({ name: "", quantity: "" });
+    } else {
+      if (newItem.name === "") {
+        alert("Please enter an item name");
+      }
+      if (newItem.quantity === "" || newItem.quantity === 0 || newItem.quantity < 0) {
+        alert("Please enter a quantity");
+      }
+      if (newItem.name === "" && newItem.quantity === "") {
+        alert("Please enter an item name and quantity");
+      }
     }
   };
+  //   e.preventDefault();
+  //   if (newItem.name !== "" && newItem.quantity !== "") {
+  //     //setItems([...items, newItem]);
+  //     await addDoc(collection(db, "items"), {
+  //       name: newItem.name.trim(),
+  //       quantity: newItem.quantity,
+  //     });
+  //     setNewItem({ name: "", quantity: "" });
+  //   }
+  //   if (newItem.name === "") {
+  //     alert("Please enter an item name");
+  //   }
+  //   if (newItem.quantity === "" || newItem.quantity === 0 || newItem.quantity < 0) {
+  //     alert("Please enter a quantity");
+  //   }
+  //   if (newItem.name === "" && newItem.quantity === "") {
+  //     alert("Please enter an item name and quantity");
+  //   }
+  //   const itemExists = items.find(item => item.name === newItem.name);
+  //   if (itemExists) {
+  //     setNewItem({ name: "", quantity: "" });
+  //     alert("Item already exists in the database.");
+  //     return;
+  //   }
+
+  // };
   //Read the data from the database
   useEffect(() => {
     const q = query(collection(db, "items"));
@@ -134,7 +201,7 @@ export default function Home() {
               onChange={(e) =>
                 setNewItem({ ...newItem, quantity: e.target.value })
               }
-              class="col-span-2 p-1 border mx-3 rounded-md"
+              className="col-span-2 p-1 border mx-3 rounded-md"
               type="number"
               placeholder="Enter quantity"
             />
