@@ -215,7 +215,7 @@ const addItemToDatabase = async (newItem) => {
     <main className="flex min-h-screen flex-col items-center justify-between sm:p-24 p-4">
       <div className="bg-secondary rounded-3xl Container">
         <h1 className="text-4xl p-4 text-center">Pantry Tracker</h1>
-        <div className="bg-antiquewhite p-4 rounded-2xl">
+        <div className="bg-antiquewhite p-4 rounded-3xl">
           <form className="grid grid-cols-6 items-center text-black">
             <input
               value={newItem.name}
@@ -266,6 +266,8 @@ const addItemToDatabase = async (newItem) => {
               </div>
             ))}
           </div>
+    
+          
           
         
           <ul>
@@ -314,6 +316,9 @@ const addItemToDatabase = async (newItem) => {
           )}
         </div>
       </div>
+    
+    
     </main>
   );
+  
 }
