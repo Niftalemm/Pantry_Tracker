@@ -17,6 +17,15 @@ import { db } from "./firebase";
 import { FaTrash } from "react-icons/fa";
 import { FaEdit } from "react-icons/fa";
 import { FaSearch } from "react-icons/fa";
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+    apiKey: "API Key", 
+    dangerouslyAllowBrowser: true
+});
+
+
+
 // Description: This is the main page of the app. It will display the main content of the app.
 // Libraries: React, useState, useEffect
 // Components: None
@@ -27,6 +36,7 @@ import { FaSearch } from "react-icons/fa";
  * @returns {JSX.Element} The rendered Home component.
  */
 export default function Home() {
+  //open AI 
   const [items, setItems] = useState([
     // { name: "Apples", quantity: 5 },
     // { name: "Banana", quantity: 4 },
@@ -49,6 +59,7 @@ export default function Home() {
   const [total, setTotal] = useState(0);
   const [newQuantity, setNewQuantity] = useState({ quantity: "" });
   const [searchQuery, setSearchQuery] = useState("");
+  const [recipe, setRecipe] = useState('');
   
 
   // Function to add a new item to the database
@@ -104,32 +115,8 @@ const addItemToDatabase = async (newItem) => {
       }
     }
   };
-  //   e.preventDefault();
-  //   if (newItem.name !== "" && newItem.quantity !== "") {
-  //     //setItems([...items, newItem]);
-  //     await addDoc(collection(db, "items"), {
-  //       name: newItem.name.trim(),
-  //       quantity: newItem.quantity,
-  //     });
-  //     setNewItem({ name: "", quantity: "" });
-  //   }
-  //   if (newItem.name === "") {
-  //     alert("Please enter an item name");
-  //   }
-  //   if (newItem.quantity === "" || newItem.quantity === 0 || newItem.quantity < 0) {
-  //     alert("Please enter a quantity");
-  //   }
-  //   if (newItem.name === "" && newItem.quantity === "") {
-  //     alert("Please enter an item name and quantity");
-  //   }
-  //   const itemExists = items.find(item => item.name === newItem.name);
-  //   if (itemExists) {
-  //     setNewItem({ name: "", quantity: "" });
-  //     alert("Item already exists in the database.");
-  //     return;
-  //   }
 
-  // };
+
   //Read the data from the database
   useEffect(() => {
     const q = query(collection(db, "items"));
@@ -178,6 +165,7 @@ const addItemToDatabase = async (newItem) => {
     }
   };
 
+  // Fetch items from the database
   const fetchItemsFromDatabase = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "items"));
@@ -207,8 +195,20 @@ const addItemToDatabase = async (newItem) => {
     );
     setFilteredItems(filtered);
   };
-  // Search the item from the list
   
+  //Generate recipe from the AI
+  const generateRecipe = async () => {
+    const recipe = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a chef in a restaurant and a customer has asked for a recipe for a dish that uses the following ingredients: 1 cup of flour, 1 cup of sugar, 1 cup of butter, 1 cup of milk, and 1 cup of chocolate chips. The customer has also requested that the dish be easy to make and suitable for a dinner party. Please provide a recipe that meets these requirements."
+        }
+      ]
+    });
+    console.log("Recipe:", recipe.data.choices[0].message.content);
+  };
 
   return (
     
@@ -267,9 +267,15 @@ const addItemToDatabase = async (newItem) => {
             ))}
           </div>
     
-          
-          
-        
+          <button onClick={generateRecipe} className="btn btn-primary mt-4">
+          Generate Recipe
+          </button>
+          {recipe && (
+          <div className="mt-4 p-4 border rounded bg-light">
+            <h2 className="text-2xl">Generated Recipe</h2>
+            <p>{recipe}</p>
+          </div>
+        )}
           <ul>
             {items.map((item, id) => (
               <li key={id} className="p-4 bg-gray-600 my-2 rounded-lg">
